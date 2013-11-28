@@ -1,0 +1,4 @@
+bin
+===
+
+my personal scripts
