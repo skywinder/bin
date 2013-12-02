@@ -9,7 +9,7 @@ import time
 # see com.intellij.idea.SocketLock for the server side of this interface
 
 RUN_PATH = '/Applications/AppCode.app'
-CONFIG_PATH = '/Users/petrkorolev/Library/Preferences/appCode20'
+CONFIG_PATH = os.path.expanduser("~") + '/Library/Preferences/appCode20'
 
 args = []
 skip_next = False
