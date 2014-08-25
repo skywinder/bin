@@ -1,0 +1,5 @@
+sudo rm -rf ~/.cocoapods && sudo rm -fr ~/.cocoapods/repos/master && pod setup && pod install
+#sudo chown -R petrkorolev ~/Library/Caches/CocoaPods &&
+ #sudo chown -R petrkorolev ./Pods &&
+ # sudo chown -R petrkorolev ./Podfile.lock &&
+ # sudo chmod -R 777 ./Pods 
