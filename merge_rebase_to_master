@@ -1,8 +1,11 @@
 #!/bin/bash
 
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-echo $CURRENT_BRANCH
+echo 'git checkout master'
 git checkout master
+echo 'git merge --no-ff $CURRENT_BRANCH'
 git merge --no-ff $CURRENT_BRANCH
+echo 'git checkout $CURRENT_BRANCH'
 git checkout $CURRENT_BRANCH
+echo 'git rebase master'
 git rebase master
