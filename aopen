@@ -7,7 +7,7 @@ proj = Dir['*.xcodeproj'].first unless proj
 
 if proj
   puts "Opening #{proj}"
-  `appcode #{proj}`
+  `appcode '#{proj}'`
 else
   puts "No xcworkspace|xcproj file found"
 end
