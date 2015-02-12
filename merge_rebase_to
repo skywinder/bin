@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ -n "$1" ]
+then
+  BRANCH_TO="$1"
+  CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+  echo 'git checkout $1'
+  git checkout $1
+  echo 'git merge --no-ff $CURRENT_BRANCH'
+  git merge --no-ff $CURRENT_BRANCH
+  echo 'git checkout $CURRENT_BRANCH'
+  git checkout $CURRENT_BRANCH
+  echo 'git rebase $1'
+  git rebase $1
+else
+  echo "Usage: merge_rebase_to [branch]"
+fi
