@@ -1,17 +1,23 @@
-if grep "ide.mac.useNativeClipboard=" idea.properties > /dev/null
+if [ -n "$1" ]
 then
-
-	if grep "ide.mac.useNativeClipboard=false" idea.properties > /dev/null
+	if grep "ide.mac.useNativeClipboard=" "$1"/Contents/bin/idea.properties > /dev/null
 	then
-		echo "ide.mac.useNativeClipboard=false found -> change to true"
-		sed -i .bak 's/ide.mac.useNativeClipboard=false/ide.mac.useNativeClipboard=true/g' idea.properties
-	else
-		if grep "ide.mac.useNativeClipboard=true" idea.properties > /dev/null
+
+		if grep "ide.mac.useNativeClipboard=false" "$1"/Contents/bin/idea.properties > /dev/null
 		then
-			echo "ide.mac.useNativeClipboard=true found -> nothing to change"
+			echo "ide.mac.useNativeClipboard=false found -> change to true"
+			sed -i .bak 's/ide.mac.useNativeClipboard=false/ide.mac.useNativeClipboard=true/g' "$1"/Contents/bin/idea.properties
+		else
+			if grep "ide.mac.useNativeClipboard=true" "$1"/Contents/bin/idea.properties > /dev/null
+			then
+				echo "ide.mac.useNativeClipboard=true found -> nothing to change"
+			fi
 		fi
+	else
+		echo "ide.mac.useNativeClipboard=false not found -> add string ide.mac.useNativeClipboard=true to the end of file"
+		echo "ide.mac.useNativeClipboard=true" >> "$1"/Contents/bin/idea.properties
 	fi
 else
-	echo "ide.mac.useNativeClipboard=false not found -> add string ide.mac.useNativeClipboard=true to the end of file"
-	echo "ide.mac.useNativeClipboard=true" >> idea.properties
+	echo "Usage: idea_native_clipboard_support [application path]"
+	echo "Example: idea_native_clipboard_support /Applications/RubyMine.app"
 fi
