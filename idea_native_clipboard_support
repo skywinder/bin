@@ -1,23 +1,25 @@
+#!/usr/bin/env bash
+ 
 if [ -n "$1" ]
 then
-	if grep "ide.mac.useNativeClipboard=" "$1"/Contents/bin/idea.properties > /dev/null
-	then
-
-		if grep "ide.mac.useNativeClipboard=false" "$1"/Contents/bin/idea.properties > /dev/null
-		then
-			echo "ide.mac.useNativeClipboard=false found -> change to true"
-			sed -i .bak 's/ide.mac.useNativeClipboard=false/ide.mac.useNativeClipboard=true/g' "$1"/Contents/bin/idea.properties
-		else
-			if grep "ide.mac.useNativeClipboard=true" "$1"/Contents/bin/idea.properties > /dev/null
-			then
-				echo "ide.mac.useNativeClipboard=true found -> nothing to change"
-			fi
-		fi
-	else
-		echo "ide.mac.useNativeClipboard=false not found -> add string ide.mac.useNativeClipboard=true to the end of file"
-		echo "ide.mac.useNativeClipboard=true" >> "$1"/Contents/bin/idea.properties
-	fi
+        if grep "ide.mac.useNativeClipboard=" "$1"/Contents/bin/idea.properties > /dev/null
+        then
+ 
+                if grep "ide.mac.useNativeClipboard=false" "$1"/Contents/bin/idea.properties > /dev/null
+                then
+                        echo "ide.mac.useNativeClipboard=false found -> change to true"
+                        sed -i .bak 's/ide.mac.useNativeClipboard=false/ide.mac.useNativeClipboard=true/g' "$1"/Contents/bin/idea.properties
+                else
+                        if grep "ide.mac.useNativeClipboard=true" "$1"/Contents/bin/idea.properties > /dev/null
+                        then
+                                echo "ide.mac.useNativeClipboard=true found -> nothing to change"
+                        fi
+                fi
+        else
+                echo "ide.mac.useNativeClipboard=false not found -> add string ide.mac.useNativeClipboard=true to the end of file"
+                echo "ide.mac.useNativeClipboard=true" >> "$1"/Contents/bin/idea.properties
+        fi
 else
-	echo "Usage: idea_native_clipboard_support [application path]"
-	echo "Example: idea_native_clipboard_support /Applications/RubyMine.app"
+        echo "Usage: idea_native_clipboard_support [application path]"
+        echo "Example: idea_native_clipboard_support /Applications/RubyMine.app"
 fi
