@@ -1,0 +1,16 @@
+#!/bin/bash
+
+function ee {
+    echo $1
+    eval $1
+}
+
+
+if [ -n "$1" ]
+then
+  POD_STRING="$1"
+  ee "echo \"$1\" >> Podfile"
+  ee "pod install"
+else
+  echo "Usage: add_and_install_pod [pod string]"
+fi
