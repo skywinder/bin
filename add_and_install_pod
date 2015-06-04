@@ -11,7 +11,8 @@ then
   POD_STRING="$1"
   printf -v ESCAPED "%q" "$1"
   ee "echo \"$1\" >> Podfile"
-  ee "pod install && git add . && git commit -m \"Add $ESCAPED\""
+  ee "pod install && git add ."
+  ee "git commit -m \"Add $ESCAPED\""
 else
   echo "Usage: add_and_install_pod [pod string]"
 fi

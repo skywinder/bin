@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import socket
 import struct
@@ -8,19 +9,22 @@ import time
 
 # see com.intellij.idea.SocketLock for the server side of this interface
 
-RUN_PATH = u'/Applications/AppCode.app'
-CONFIG_PATH = u'/Users/petrkorolev/Library/Preferences/appCode31'
+RUN_PATH = u'/Volumes/AppCode EAP/AppCode EAP.app'
+CONFIG_PATH = u'/Users/petrkorolev/Library/Preferences/AppCode32'
 
 args = []
 skip_next = False
 for i, arg in enumerate(sys.argv[1:]):
     if arg == '-h' or arg == '-?' or arg == '--help':
-        print(('Usage:\n' + \
-               '  {0} -h |-? | --help\n' + \
-               '  {0} [-l|--line line] file[:line]\n' + \
-               '  {0} diff file1 file2').format(sys.argv[0]))
+        print(('Usage:\n' +
+               '  {0} -h |-? | --help\n' +
+               '  {0} [-l|--line line] file[:line]\n' +
+               '  {0} diff <left> <right>' +
+               '  {0} merge <local> <remote> [base] <merged>').format(sys.argv[0]))
         exit(0)
     elif arg == 'diff' and i == 0:
+        args.append(arg)
+    elif arg == 'merge' and i == 0:
         args.append(arg)
     elif arg == '-l' or arg == '--line':
         args.append(arg)
@@ -40,6 +44,7 @@ for i, arg in enumerate(sys.argv[1:]):
         else:
             args.append(os.path.abspath(arg))
 
+
 def launch_with_port(port):
     found = False
 
@@ -54,7 +59,6 @@ def launch_with_port(port):
         try:
             path_len = struct.unpack(">h", s.recv(2))[0]
             path = s.recv(path_len)
-            path = os.path.abspath(path)
             if os.path.abspath(path) == os.path.abspath(CONFIG_PATH):
                 found = True
                 break
@@ -66,10 +70,11 @@ def launch_with_port(port):
             cmd = "activate " + os.getcwd() + "\0" + "\0".join(args)
             encoded = struct.pack(">h", len(cmd)) + cmd
             s.send(encoded)
-            time.sleep(0.5)   # don't close socket immediately
+            time.sleep(0.5)  # don't close socket immediately
         return True
 
     return False
+
 
 port = -1
 try:
@@ -82,7 +87,7 @@ except Exception:
 
 if port == -1:
     # SocketLock actually allows up to 50 ports, but the checking takes too long
-    for port in range(6942, 6942+10):
+    for port in range(6942, 6942 + 10):
         if launch_with_port(port): exit()
 else:
     if launch_with_port(port): exit()
@@ -95,5 +100,4 @@ if sys.platform == "darwin":
 else:
     # unix common
     bin_dir, bin_file = os.path.split(RUN_PATH)
-    os.chdir(bin_dir)
-    os.execv(bin_file, [bin_file] + args)
+    os.execv(RUN_PATH, [bin_file] + args)
