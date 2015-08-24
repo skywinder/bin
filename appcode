@@ -9,7 +9,7 @@ import time
 
 # see com.intellij.idea.SocketLock for the server side of this interface
 
-RUN_PATH = u'/Volumes/AppCode EAP/AppCode EAP.app'
+RUN_PATH = u'/Applications/AppCode.app'
 CONFIG_PATH = u'/Users/petrkorolev/Library/Preferences/AppCode32'
 
 args = []
