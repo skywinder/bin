@@ -9,8 +9,8 @@ import time
 
 # see com.intellij.idea.SocketLock for the server side of this interface
 
-RUN_PATH = u'/Applications/AppCode EAP.app'
-CONFIG_PATH = u'/Users/petrkorolev/Library/Preferences/AppCode33'
+RUN_PATH = u'/Applications/RubyMine.app'
+CONFIG_PATH = u'/Users/petrkorolev/Library/Preferences/RubyMine70'
 
 args = []
 skip_next = False
@@ -82,7 +82,7 @@ try:
     port = int(f.read())
 except Exception:
     type, value, traceback = sys.exc_info()
-    print('No IDE instance has been found. New one will be started.')
+    print(value)
     port = -1
 
 if port == -1:
