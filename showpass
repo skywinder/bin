@@ -1,3 +1,13 @@
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Resources/airport -I | awk -F: '/ SSID/{print $2}'`
-echo $SSID
-security find-generic-password -ga $SSID | grep “password:”
+#!/bin/bash
+
+# Get the current SSID
+SSID=$(networksetup -getairportnetwork en0 | awk -F': ' '{print $2}')
+
+# Use the security command to get the password
+PASSWORD=$(security find-generic-password -D "AirPort network password" -wa "$SSID")
+
+echo "SSID: $SSID"
+echo "Password: $PASSWORD"
+
+# Generate QR code for WiFi access (WPA/WPA2)
+qrencode -t ANSIUTF8 "WIFI:T:WPA;S:$SSID;P:$PASSWORD;;"
