@@ -1,21 +1,29 @@
 #!/bin/bash
 
-# Check if a path was provided
+# Check if an argument was provided
 if [ -z "$1" ]
 then
-    echo "Please provide a path to the app."
+    echo "Please provide an app name or path."
     exit 1
 fi
 
-# Check if the app exists at the given path
-if [ ! -d "$1" ]
+# If the argument is a directory, it's a path to the app
+if [ -d "$1" ]
 then
-    echo "No app found at the given path."
-    exit 1
+    app_path="$1"
+else
+    # If it's not a directory, consider it an app name and find its path
+    app_name="$1"
+    app_path=$(find /Applications -iname "*$app_name*.app" -type d -maxdepth 3 | head -n 1)
+    if [ -z "$app_path" ]
+    then
+        echo "No app named '$app_name' found in the /Applications directory."
+        exit 1
+    fi
 fi
 
 # Path to the Info.plist file
-plist_path="$1/Contents/Info.plist"
+plist_path="$app_path/Contents/Info.plist"
 
 # Check if the Info.plist file exists
 if [ ! -f "$plist_path" ]
@@ -38,4 +46,3 @@ fi
 echo $bundle_id
 
 exit 0
-
