@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Check if a path is provided
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 [path]"
+    exit 1
+fi
+
+# Assign the provided path to a variable
+DIR_PATH=$1
+
+# Calculate total size
+#TOTAL_SIZE=$(du -sh "$DIR_PATH" | cut -f1)
+# Calculate the total size in MB
+TOTAL_SIZE_MB=$(du -ks "$DIR_PATH" | awk '{printf "%.2f", $1/1024}')
+# Convert MB to GB for a more readable format
+TOTAL_SIZE_GB=$(echo "$TOTAL_SIZE_MB" | awk '{printf "%.2f", $1/1024}')
+
+# Count the number of files
+FILE_COUNT=$(find "$DIR_PATH" -type f | wc -l)
+
+# Count the number of directories
+DIR_COUNT=$(find "$DIR_PATH" -type d | wc -l)
+
+# Output the results
+echo "Path: $DIR_PATH"
+#echo "Total Size: $TOTAL_SIZE"
+echo "Total Size: ${TOTAL_SIZE_GB} GB (${TOTAL_SIZE_MB} MB)"
+echo "Number of Files: $FILE_COUNT"
+echo "Number of Directories: $DIR_COUNT"
+

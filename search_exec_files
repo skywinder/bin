@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Check if at least two arguments are provided
+if [ "$#" -lt 2 ]; then
+    echo "Usage: $0 SEARCH_WORD_IN_NAME SEARCH_PATTERN_INSIDE_FILES"
+    exit 1
+fi
+
+# First argument: Word to search for in file names (case-insensitive)
+search_name_word="$1"
+
+# Second argument: Pattern to search for inside files (case-insensitive)
+search_content_pattern="$2"
+
+# Define the paths to search within
+# Expanding the tilde for the user's home directory
+search_paths=(
+    "/Library/PrivilegedHelperTools/"
+    "/Library/LaunchAgents/"
+    "/Library/LaunchDaemons/"
+    "$(eval echo ~$USER)/Library/LaunchAgents/"
+)
+
+echo "Searching for files with '$search_name_word' in their names (case-insensitive) and '$search_content_pattern' in their content (case-insensitive)."
+
+# Loop through each path
+for path in "${search_paths[@]}"; do
+    echo "Searching in: $path"
+    
+    # Search by file name (case-insensitive)
+    find "$path" -type f -iname "*$search_name_word*" -print
+    
+    # Search inside files for the pattern (case-insensitive)
+    # This uses grep with -l to only output the names of files containing the match
+    # The -i option is used for case-insensitive search
+    # The command will suppress error messages (like permission denied)
+    find "$path" -type f -exec grep -il "$search_content_pattern" {} + 2>/dev/null
+done
+
+echo "Search complete."
+
