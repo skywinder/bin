@@ -5,8 +5,9 @@ if [ -z "$FASTMAIL_API_KEY" ]; then
 fi
 
 # Configurations
-API_URL="https://api.fastmail.com/jmap/session"  # Updated URL to get session first
-PURPOSE="$1"  # Optional: Purpose of the masked email, passed as an argument
+API_URL="https://api.fastmail.com/jmap/session"
+DESCRIPTION="$1"  # Optional: Description for the masked email
+EMAIL_PREFIX="$2" # Optional: Prefix for the masked email
 
 # Dependencies check
 if ! command -v curl &>/dev/null || ! command -v jq &>/dev/null || ! command -v pbcopy &>/dev/null; then
@@ -59,12 +60,32 @@ if [ -z "$ACCOUNT_ID" ] || [ "$ACCOUNT_ID" = "null" ]; then
     exit 1
 fi
 
-# More detailed API call with error capture
+# Prepare the create object
+CREATE_OBJECT="{\"state\":\"enabled\""
+
+# Add description if provided
+if [ -n "$DESCRIPTION" ]; then
+    CREATE_OBJECT="$CREATE_OBJECT,\"description\":\"$DESCRIPTION\""
+fi
+
+# Add email prefix if provided
+if [ -n "$EMAIL_PREFIX" ]; then
+    # Validate email prefix
+    if [[ ! "$EMAIL_PREFIX" =~ ^[a-z0-9_]{1,64}$ ]]; then
+        echo "Error: Email prefix must be 1-64 characters long and contain only a-z, 0-9, and underscore"
+        exit 1
+    fi
+    CREATE_OBJECT="$CREATE_OBJECT,\"emailPrefix\":\"$EMAIL_PREFIX\""
+fi
+
+CREATE_OBJECT="$CREATE_OBJECT}"
+
+# Make the API request
 debug "Making masked email generation request..."
 API_RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST \
     -H "Authorization: Bearer $FASTMAIL_API_KEY" \
     -H "Content-Type: application/json" \
-    -d "{\"using\":[\"urn:ietf:params:jmap:core\",\"https://www.fastmail.com/dev/maskedemail\"],\"methodCalls\":[[\"MaskedEmail/set\",{\"accountId\":\"$ACCOUNT_ID\",\"create\":{\"new\":{\"state\":\"enabled\"}}},\"0\"]]}" \
+    -d "{\"using\":[\"urn:ietf:params:jmap:core\",\"https://www.fastmail.com/dev/maskedemail\"],\"methodCalls\":[[\"MaskedEmail/set\",{\"accountId\":\"$ACCOUNT_ID\",\"create\":{\"new\":$CREATE_OBJECT}},\"0\"]]}" \
     "$API_ENDPOINT")
 
 HTTP_STATUS=$(echo "$API_RESPONSE" | tail -n1)
@@ -73,7 +94,13 @@ RESPONSE_BODY=$(echo "$API_RESPONSE" | sed '$ d')
 debug "HTTP Status: $HTTP_STATUS"
 debug "Response Body: $RESPONSE_BODY"
 
-# More detailed error checking
+# Check for rate limit error
+if echo "$RESPONSE_BODY" | jq -e '.methodResponses[0][1].notCreated.new.type == "rateLimit"' >/dev/null; then
+    echo "Error: Rate limit exceeded. Please try again later."
+    exit 1
+fi
+
+# Check for other errors
 if [ "$HTTP_STATUS" -ne 200 ]; then
     echo "Error: API request failed with status $HTTP_STATUS"
     debug "Full response: $RESPONSE_BODY"
@@ -84,19 +111,18 @@ MASKED_EMAIL=$(echo "$RESPONSE_BODY" | jq -r '.methodResponses[0][1].created.new
 
 # Validate response
 if [ -z "$MASKED_EMAIL" ] || [ "$MASKED_EMAIL" = "null" ]; then
-  echo "Error: Failed to generate masked email. Please check your API key and Fastmail setup."
-  debug "Response body: $RESPONSE_BODY"
-  exit 1
+    echo "Error: Failed to generate masked email. Please check your API key and Fastmail setup."
+    debug "Response body: $RESPONSE_BODY"
+    exit 1
 fi
 
 # Copy to clipboard
 echo -n "$MASKED_EMAIL" | pbcopy
 echo "Masked Email generated and copied to clipboard: $MASKED_EMAIL"
 
-# Add purpose as a comment if provided
-if [ -n "$PURPOSE" ]; then
-  echo "Purpose: $PURPOSE"
-  echo "$MASKED_EMAIL - $PURPOSE" | pbcopy
+# Show description if provided
+if [ -n "$DESCRIPTION" ]; then
+    echo "Description: $DESCRIPTION"
 fi
 
 exit 0
