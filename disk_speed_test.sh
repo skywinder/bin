@@ -36,14 +36,11 @@ if [ ! -d "$MOUNT_PATH" ]; then
   exit 1
 fi
 
+
 TEST_FILE="$MOUNT_PATH/speed_test_file"
 BLOCK_SIZE=1m # Use lowercase 'm' for macOS dd command
 
 echo "Testing write and read speed for $MOUNT_PATH with file size ${TEST_FILE_SIZE_MB}MB..."
-
-# Clear the system cache (macOS specific, requires sudo)
-echo "Clearing system cache..."
-sudo purge
 
 # Measure write speed
 WRITE_START=$(date +%s.%N)
@@ -53,9 +50,6 @@ WRITE_DIFF=$(echo "$WRITE_END - $WRITE_START" | bc)
 WRITE_SPEED=$(echo "scale=2; $TEST_FILE_SIZE_MB / $WRITE_DIFF" | bc)
 echo "Write Speed: $WRITE_SPEED MB/s"
 
-# Clear the system cache again to ensure accurate read speed measurement
-echo "Clearing system cache..."
-sudo purge
 
 # Measure read speed
 READ_START=$(date +%s.%N)

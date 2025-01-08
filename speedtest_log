@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Get the current date and time
+DATE=$(date +"%Y-%m-%d %H:%M:%S")
+
+# Get the Wi-Fi SSID
+SSID=$(networksetup -getairportnetwork en0 | awk -F': ' '{print $2}')
+
+# Run speedtest and capture the results, suppressing deprecation warnings
+SPEEDTEST_RESULT=$(python3 -W ignore -m speedtest-cli --simple)
+
+# Extract download and upload speeds
+DOWNLOAD_SPEED=$(echo "$SPEEDTEST_RESULT" | grep 'Download:' | awk '{print $2, $3}')
+UPLOAD_SPEED=$(echo "$SPEEDTEST_RESULT" | grep 'Upload:' | awk '{print $2, $3}')
+PING=$(echo "$SPEEDTEST_RESULT" | grep 'Ping:' | awk '{print $2, $3}')
+
+# Log the information
+LOG_FILE="speedtest_log.txt"
+echo "$DATE - SSID: $SSID - Ping: $PING - Download: $DOWNLOAD_SPEED - Upload: $UPLOAD_SPEED" | tee -a $LOG_FILE
