@@ -75,17 +75,28 @@ if [ -n "$EMAIL_PREFIX" ]; then
         echo "Error: Email prefix must be 1-64 characters long and contain only a-z, 0-9, and underscore"
         exit 1
     fi
-    CREATE_OBJECT="$CREATE_OBJECT,\"emailPrefix\":\"$EMAIL_PREFIX\""
+    CREATE_OBJECT="$CREATE_OBJECT,\"forDomain\":\"fastmail.com\",\"emailPrefix\":\"$EMAIL_PREFIX\""
 fi
 
 CREATE_OBJECT="$CREATE_OBJECT}"
+
+# Build the full request body
+REQUEST_BODY="{
+    \"using\":[\"urn:ietf:params:jmap:core\",\"https://www.fastmail.com/dev/maskedemail\"],
+    \"methodCalls\":[[\"MaskedEmail/set\",{
+        \"accountId\":\"$ACCOUNT_ID\",
+        \"create\":{\"new\":$CREATE_OBJECT}
+    },\"0\"]]
+}"
+
+debug "Request Body: $REQUEST_BODY"
 
 # Make the API request
 debug "Making masked email generation request..."
 API_RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST \
     -H "Authorization: Bearer $FASTMAIL_API_KEY" \
     -H "Content-Type: application/json" \
-    -d "{\"using\":[\"urn:ietf:params:jmap:core\",\"https://www.fastmail.com/dev/maskedemail\"],\"methodCalls\":[[\"MaskedEmail/set\",{\"accountId\":\"$ACCOUNT_ID\",\"create\":{\"new\":$CREATE_OBJECT}},\"0\"]]}" \
+    -d "$REQUEST_BODY" \
     "$API_ENDPOINT")
 
 HTTP_STATUS=$(echo "$API_RESPONSE" | tail -n1)
@@ -95,15 +106,23 @@ debug "HTTP Status: $HTTP_STATUS"
 debug "Response Body: $RESPONSE_BODY"
 
 # Check for rate limit error
-if echo "$RESPONSE_BODY" | jq -e '.methodResponses[0][1].notCreated.new.type == "rateLimit"' >/dev/null; then
+if echo "$RESPONSE_BODY" | jq -e '.methodResponses[0][1].notCreated.new.type == "rateLimit"' >/dev/null 2>&1; then
     echo "Error: Rate limit exceeded. Please try again later."
     exit 1
 fi
 
-# Check for other errors
+# Enhanced error checking
 if [ "$HTTP_STATUS" -ne 200 ]; then
     echo "Error: API request failed with status $HTTP_STATUS"
     debug "Full response: $RESPONSE_BODY"
+    exit 1
+fi
+
+# Check for API errors in the response
+if echo "$RESPONSE_BODY" | jq -e '.methodResponses[0][1].notCreated' >/dev/null 2>&1; then
+    ERROR_TYPE=$(echo "$RESPONSE_BODY" | jq -r '.methodResponses[0][1].notCreated.new.type')
+    ERROR_DESC=$(echo "$RESPONSE_BODY" | jq -r '.methodResponses[0][1].notCreated.new.description')
+    echo "Error: Failed to create masked email - $ERROR_TYPE: $ERROR_DESC"
     exit 1
 fi
 
@@ -116,8 +135,8 @@ if [ -z "$MASKED_EMAIL" ] || [ "$MASKED_EMAIL" = "null" ]; then
     exit 1
 fi
 
-# Copy to clipboard
-echo -n "$MASKED_EMAIL" | pbcopy
+# Copy to clipboard using printf instead of echo -n
+printf "%s" "$MASKED_EMAIL" | pbcopy
 echo "Masked Email generated and copied to clipboard: $MASKED_EMAIL"
 
 # Show description if provided
